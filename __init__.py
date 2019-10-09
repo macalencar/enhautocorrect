@@ -40,7 +40,7 @@ def load_from_tar(archive_name, file_name='word_count.json'):
 class Speller:
     """ Main class that loads the dicitonary based on the language.
         It is possible to reduce the dictionary size by eliminating
-        the words smaller then threshold value """
+        the words with frequency value lower than threshold value """
 
     def __init__(self, threshold=0, lang='en'):
         self.threshold = threshold
@@ -71,12 +71,10 @@ class Speller:
         >>>
         """
         word_obj = Word(word, self.lang)
-        words_lst = list()
-        words_lst += self.existing([word])
-        words_lst += self.existing(word_obj.typos())
-        words_lst += self.existing(word_obj.double_typos())
-        words_lst += [word.lower()]
-
+        words_lst = (self.existing([word]) or
+                     self.existing(word_obj.typos()) or
+                     self.existing(word_obj.double_typos()) or
+                     [word.lower()])
         if word not in words_lst:
             words_prob = dict()
             for candidate in words_lst:
@@ -85,7 +83,6 @@ class Speller:
             for candidate in words_lst:
                 similarity = SequenceMatcher(None, candidate.lower(), word.lower()).ratio()
                 words_prob[candidate] = (words_prob[candidate]/wp_total) * similarity
-
             words_prob = sorted(words_prob.items(), key=lambda x: x[1], reverse=True)
             return words_prob[:max_suggestions]
         return None
