@@ -16,6 +16,11 @@ Customized by: Márcio Alencar
 https://github.com/macalencar/enhautocorrect/
 
 """
+"""
+1-incluir processamento paralelo (threads)
+2-incluir flags para tratar remvover probabilidades (analyze sentence)
+3-atualizar dicionário (remover palavras com threshold e salvar)
+"""
 
 import json
 import re
@@ -64,7 +69,7 @@ class Speller:
             return self.nlp_data[word]
         return 0
 
-    def candidates(self, word, max_suggestions=3):
+    def candidates(self, word, max_suggestions=3, show_probability=False):
         """
         >>> Speller.candidates("gxt")
         [('get', 0.40018832391713743), ('got', 0.2532956685499058), ('gut', 0.01224105461393597)]
@@ -75,6 +80,10 @@ class Speller:
                      self.existing(word_obj.typos()) or
                      self.existing(word_obj.double_typos()) or
                      [word.lower()])
+
+        if not show_probability:
+            return sorted(words_lst, key=self.nlp_data.get, reverse=True)
+
         if word not in words_lst:
             words_prob = dict()
             for candidate in words_lst:
@@ -85,13 +94,14 @@ class Speller:
                 words_prob[candidate] = (words_prob[candidate]/wp_total) * similarity
             words_prob = sorted(words_prob.items(), key=lambda x: x[1], reverse=True)
             return words_prob[:max_suggestions]
+            print("Dic", word_prob)
         return None
 
-    def analyze_sentence(self, sentence, max_suggestions=3):
+    def analyze_sentence(self, sentence, max_suggestions=3, show_probability=False):
         """ gives a suggestion for each wrong word in sentence """
         ocurrences = {}
         for word in re.findall(word_regexes[self.lang], sentence):
-            candidates_list = self.candidates(word, max_suggestions)
+            candidates_list = self.candidates(word, max_suggestions, show_probability)
             if candidates_list:
                 ocurrences[word] = candidates_list
         return ocurrences
