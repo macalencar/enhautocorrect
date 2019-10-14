@@ -26,7 +26,6 @@ import json
 import re
 import tarfile
 import os
-from difflib import SequenceMatcher
 from contextlib import closing
 
 from enhautocorrect.constants import word_regexes
@@ -69,7 +68,7 @@ class Speller:
             return self.nlp_data[word]
         return 0
 
-    def candidates(self, word, max_suggestions=3, show_probability=False):
+    def candidates(self, word, max_suggestions=3, verbose=False):
         """
         >>> Speller.candidates("gxt")
         [('get', 0.40018832391713743), ('got', 0.2532956685499058), ('gut', 0.01224105461393597)]
@@ -81,30 +80,40 @@ class Speller:
                      self.existing(word_obj.double_typos()) or
                      [word.lower()])
 
-        if not show_probability:
-            return sorted(words_lst, key=self.nlp_data.get, reverse=True)
+        words_lst=sorted(words_lst, key=self.nlp_data.get, reverse=True)
+        if word in words_lst:
+            return None
 
-        if word not in words_lst:
-            words_prob = dict()
-            for candidate in words_lst:
-                words_prob[candidate] = self.get_frequency(candidate)
-            wp_total = 1 + sum(words_prob.values())
-            for candidate in words_lst:
-                similarity = SequenceMatcher(None, candidate.lower(), word.lower()).ratio()
-                words_prob[candidate] = (words_prob[candidate]/wp_total) * similarity
-            words_prob = sorted(words_prob.items(), key=lambda x: x[1], reverse=True)
-            return words_prob[:max_suggestions]
-            print("Dic", word_prob)
-        return None
+        if not verbose:
+            return words_lst[:max_suggestions]
 
-    def analyze_sentence(self, sentence, max_suggestions=3, show_probability=False):
+        words_prob = list()
+        wp_total = sum (self.get_frequency(w) for w in words_lst) + 1 #, key=self.nlp_data.get))
+        for candidate in words_lst:
+            words_prob.append({"term":candidate, "probability":self.get_frequency(candidate)/wp_total})
+        return words_prob[:max_suggestions]
+
+    def analyze_sentence(self, sentence, max_suggestions=3, verbose=False):
         """ gives a suggestion for each wrong word in sentence """
-        ocurrences = {}
-        for word in re.findall(word_regexes[self.lang], sentence):
-            candidates_list = self.candidates(word, max_suggestions, show_probability)
+        report={}
+        if verbose:
+            report={"sentence":sentence,"issues":list()}
+
+        #for word in re.findall(word_regexes[self.lang], sentence):
+        for word in re.findall(r'\w+', sentence):
+            candidates_list = self.candidates(word, max_suggestions, verbose)
             if candidates_list:
-                ocurrences[word] = candidates_list
-        return ocurrences
+                if verbose:
+                    report["issues"].append({"wrongTerm":word, "suggestions":candidates_list})
+                else:
+                    report[word]=candidates_list
+        if verbose:
+            if len(report["issues"]) > 0:
+                return report
+            return None
+        else: 
+            return report or None
+
 
     def autocorrect_word(self, word):
         """most likely correction for everything up to a double typo"""

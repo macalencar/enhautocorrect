@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
 word_regexes = {
-    'en': r'[A-Za-z]+', 
-    'pl': r'[A-Za-zęóąśłżźćń]+',
-    'pt': r'[A-Za-zçáàãâéêèeíóôõú]+',
+    'en': r'[A-Za-z]+',
+    'es': r'[A-Za-zÁÉÍÑÓÚÜáéíñóúü]',
+    'fr': r'[A-Za-zÀÂÇÉÈÊËÎÏÔŒÙÛÜŸàâçéèêëîïôœùûüÿ]',
+    'it': r'[A-Za-zÀÉÈÌÒÙàéèìòù]',
+    'jp': r'[A-Za-z一-龯]',
+    'pt_br': r'[A-Za-zÁÉÍÓÚÂÊÔÀãõçáéíóúâêôà]+',
+    'ru': r'[А-Za-zБВГДЁЖЗИЙКЛМПУФХЦЧШЩЭЮЯбвгдёжзийклmмнптфхцчшщъыьэюя]'
 }
 
 alphabets = {
     'en': 'abcdefghijklmnopqrstuvwxyz',
-    'pl': 'abcdefghijklmnopqrstuvwxyzęóąśłżźćń',
-    'pt': 'abcdefghijklmnopqrstuvwxyzçáàãâéêèeíóôõú',
+    'es': 'abcdefghijklmnopqrstuvwxyzáàãâéêèíóôõúñ]',
+    'fr': 'abcdefghijklmnopqrstuvwxyzàâçéèêëîïôœùûüÿ',
+    'it': 'abcdefghijklmnopqrstuvwxyzàéèìòù',
+    'jp': '一ァアあィイいゥウうヴェエえォオおカかガがキきギぎクくグぐケけゲげコこゴごサさザざシしジじスすズずセせゼぜソそゾぞタたダだチちヂぢツつヅづテてデでトとドどナなニにヌぬネねノのハはバばパぱヒひビびピぴフふブぶプぷヘへベべペぺホほボぼポぽマまミみムむメめモもャゃヤやュゅユゆョょヨよラらリりルるレれロろワわヷヰゐヸヱゑヹヲをヺンん',
+    'pt_br': 'abcdefghijklmnopqrstuvwxyzçáàãâéêèeíóôõú',
+    'ru': 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
 }
 
 """ 
