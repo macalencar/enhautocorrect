@@ -68,7 +68,7 @@ class Speller:
             return self.nlp_data[word]
         return 0
 
-    def candidates(self, word, max_suggestions=3, verbose=False):
+    def candidates(self, word, max_suggestions=3, labels=False):
         """
         >>> Speller.candidates("gxt")
         [('get', 0.40018832391713743), ('got', 0.2532956685499058), ('gut', 0.01224105461393597)]
@@ -84,30 +84,30 @@ class Speller:
         if word in words_lst:
             return None
 
-        if not verbose:
+        if not labels:
             return words_lst[:max_suggestions]
 
         words_prob = list()
         wp_total = sum (self.get_frequency(w) for w in words_lst) + 1 #, key=self.nlp_data.get))
         for candidate in words_lst:
-            words_prob.append({"term":candidate, "probability":self.get_frequency(candidate)/wp_total})
+            words_prob.append({"term":candidate, "similarity":self.get_frequency(candidate)/wp_total})
         return words_prob[:max_suggestions]
 
-    def analyze_sentence(self, sentence, max_suggestions=3, verbose=False):
+    def analyze_sentence(self, sentence, max_suggestions=3, labels=False):
         """ gives a suggestion for each wrong word in sentence """
         report={}
-        if verbose:
+        if labels:
             report={"sentence":sentence,"issues":list()}
 
         #for word in re.findall(word_regexes[self.lang], sentence):
         for word in re.findall(r'\w+', sentence):
-            candidates_list = self.candidates(word, max_suggestions, verbose)
+            candidates_list = self.candidates(word, max_suggestions, labels)
             if candidates_list:
-                if verbose:
+                if labels:
                     report["issues"].append({"wrongTerm":word, "suggestions":candidates_list})
                 else:
                     report[word]=candidates_list
-        if verbose:
+        if labels:
             if len(report["issues"]) > 0:
                 return report
             return None
