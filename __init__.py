@@ -90,7 +90,7 @@ class Speller:
         words_prob = list()
         wp_total = sum (self.get_frequency(w) for w in words_lst) + 1 #, key=self.nlp_data.get))
         for candidate in words_lst:
-            words_prob.append({"term":candidate, "similarity":self.get_frequency(candidate)/wp_total})
+            words_prob.append({"term":candidate, "probability":self.get_frequency(candidate)/wp_total})
         return words_prob[:max_suggestions]
 
     def analyze_sentence(self, sentence, max_suggestions=3, labels=False):
