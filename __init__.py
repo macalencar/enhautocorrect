@@ -16,11 +16,6 @@ Customized by: Márcio Alencar
 https://github.com/macalencar/enhautocorrect/
 
 """
-"""
-1-incluir processamento paralelo (threads)
-2-incluir flags para tratar remvover probabilidades (analyze sentence)
-3-atualizar dicionário (remover palavras com threshold e salvar)
-"""
 
 import json
 import re
@@ -46,7 +41,7 @@ class Speller:
         It is possible to reduce the dictionary size by eliminating
         the words with frequency value lower than threshold value """
 
-    def __init__(self, threshold=0, lang='en'):
+    def __init__(self, lang='en', threshold=0):
         self.threshold = threshold
         dic_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang))
         self.nlp_data = load_from_tar(dic_file)
@@ -78,7 +73,7 @@ class Speller:
         words_lst = (self.existing([word]) or
                      self.existing(word_obj.typos()) or
                      self.existing(word_obj.double_typos()) or
-                     [word.lower()])
+                     [word])
 
         words_lst=sorted(words_lst, key=self.nlp_data.get, reverse=True)
         if word in words_lst:
@@ -100,7 +95,7 @@ class Speller:
             report={"sentence":sentence,"issues":list()}
 
         #for word in re.findall(word_regexes[self.lang], sentence):
-        for word in re.findall(r'\w+', sentence):
+        for word in re.findall(r'\w+', sentence.lower()):
             candidates_list = self.candidates(word, max_suggestions, labels)
             if candidates_list:
                 if labels:
@@ -128,6 +123,6 @@ class Speller:
         """return the correct sentence after each word pass throught autocorrect_word"""
         return re.sub(word_regexes[self.lang],
                       lambda match: self.autocorrect_word(match.group(0)),
-                      sentence)
+                      sentence.lower())
 
     __call__ = autocorrect_sentence
