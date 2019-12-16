@@ -40,11 +40,9 @@ def get_words(filename, lang):
     """ Gets the words from input file  based on word_regexes
         associated to the language """
     word_regex = word_regexes[lang]
-    #alphabeth_regex = r'(\.|^|<|"|\'|\(|\[|\{\s*)' + word_regexes[lang] # '(\.|^|<|"|\'|\(|\[|\{\s*)'
     count_words=0
     with open(filename) as file:
         for line in file:
-            #line = re.sub(alphabeth_regex, '', line.lower())
             for word in re.findall(word_regex, line):
                 if word.strip():
                     yield word
@@ -64,7 +62,7 @@ def save_dictionary(freq_dict, dict_file, out_filename='word_count.json'):
         json.dump(freq_dict, outfile)
     with tarfile.open(dict_file, "w:gz") as compressed_file:
         compressed_file.add(out_filename)
-    os.remove(out_filename)        
+    os.remove(out_filename)
 
 def count_words(src_filename, lang, update=True):
     """ Analyze the input file based on the language and
@@ -72,12 +70,12 @@ def count_words(src_filename, lang, update=True):
     words = get_words(src_filename, lang)
     counts = parse(words)    
     freq_dict=counts
-    dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang))        
+    dict_file = os.path.join(PATH, 'data/{}/{}.tar.gz'.format(lang))        
     if update and os.path.exists(dict_file):
         old_dict = load_from_tar(dict_file)
         for k in counts.keys():
-            try: old_dict[k]+=counts[k] #increment 
-            except KeyError: old_dict[k]=counts[k] #append
+            try: old_dict[k]+=counts[k]
+            except KeyError: old_dict[k]=counts[k]
         counts={}
         freq_dict=old_dict          
     save_dictionary(freq_dict, dict_file)
@@ -112,15 +110,14 @@ class Speller:
             return self.nlp_data[word]
         return 0
 
-    def remove_words(self, words_list, permanent=False):
-        for word in words_list:
-            try:
-                del self.nlp_data[word]                
-            except KeyError:
-                print("Word",word,"not found")
-        if permanent:    
-            save_dictionary(self.nlp_data, self.dict_file)
+    def remove_words(self, word):
+        try: del self.nlp_data[word]                
+        except KeyError: print("Word'",word,"'not found")
     
+    def add_word(self, word):
+        try: self.nlp_data[word]+=1
+        except KeyError: self.nlp_data[word]=1
+
     def candidates(self, word, max_suggestions=3, labels=False):
         """
         >>> Speller.candidates("gxt")
@@ -132,7 +129,6 @@ class Speller:
                      self.existing(word_obj.typos()) or
                      self.existing(word_obj.double_typos()) or
                      [word])
-
         words_lst=sorted(words_lst, key=self.nlp_data.get, reverse=True)
         if word in words_lst:
             return None
@@ -166,7 +162,6 @@ class Speller:
             return None
         else: 
             return report or None
-
 
     def autocorrect_word(self, word):
         """most likely correction for everything up to a double typo"""
