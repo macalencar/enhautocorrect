@@ -43,7 +43,7 @@ def get_words(filename, lang):
     count_words=0
     with open(filename) as file:
         for line in file:
-            for word in re.findall(word_regex, line):
+            for word in re.findall(word_regex, line.lower()):
                 if word.strip():
                     yield word
 
@@ -57,10 +57,10 @@ def parse(words):
             counts[word] = 1
     return counts
 
-def save_dictionary(freq_dict, dict_file, out_filename='word_count.json'):
+def save_dictionary(freq_dict, dict_lang, out_filename='word_count.json'):
     with open(out_filename, 'w') as outfile:
         json.dump(freq_dict, outfile)
-    with tarfile.open(dict_file, "w:gz") as compressed_file:
+    with tarfile.open(PATH+"/data/"+dict_lang+".tar.gz","w:gz") as compressed_file:
         compressed_file.add(out_filename)
     os.remove(out_filename)
 
@@ -70,15 +70,16 @@ def count_words(src_filename, lang, update=True):
     words = get_words(src_filename, lang)
     counts = parse(words)    
     freq_dict=counts
-    dict_file = os.path.join(PATH, 'data/{}/{}.tar.gz'.format(lang))        
+    dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang))        
     if update and os.path.exists(dict_file):
         old_dict = load_from_tar(dict_file)
         for k in counts.keys():
             try: old_dict[k]+=counts[k]
             except KeyError: old_dict[k]=counts[k]
         counts={}
-        freq_dict=old_dict          
-    save_dictionary(freq_dict, dict_file)
+        freq_dict=old_dict
+    print("Saving dictionary with", len(freq_dict), "words")      
+    save_dictionary(freq_dict, lang)
 
 class Speller:
     """ Main class that loads the dicitonary based on the language.
@@ -110,7 +111,7 @@ class Speller:
             return self.nlp_data[word]
         return 0
 
-    def remove_words(self, word):
+    def remove_word(self, word):
         try: del self.nlp_data[word]                
         except KeyError: print("Word'",word,"'not found")
     
@@ -148,22 +149,25 @@ class Speller:
         if labels:
             report={"sentence":sentence,"issues":list()}
 
-        #for word in re.findall(word_regexes[self.lang], sentence):
-        for word in re.findall(r'\w+', sentence.lower()):
-            candidates_list = self.candidates(word, max_suggestions, labels)
-            if candidates_list:
-                if labels:
-                    report["issues"].append({"wrongTerm":word, "suggestions":candidates_list})
-                else:
-                    report[word]=candidates_list
+        #for word in re.findall(r'\w+', sentence.lower()):
+        for word in re.findall(word_regexes[self.lang], sentence.lower()):
+            if not re.match(r'\d+', word):
+                candidates_list = self.candidates(word, max_suggestions, labels)
+                if candidates_list:
+                    if labels:
+                        report["issues"].append({"wrongTerm":word, "suggestions":candidates_list})
+                    else:
+                        report[word]=candidates_list
         if labels:
             if len(report["issues"]) > 0:
                 return report
             return None
         else: 
             return report or None
+            
+    __call__ = analyze_sentence
 
-    def autocorrect_word(self, word):
+'''    def autocorrect_word(self, word):
         """most likely correction for everything up to a double typo"""
         word_obj = Word(word, self.lang)
         candidates = (self.existing([word]) or
@@ -177,5 +181,4 @@ class Speller:
         return re.sub(word_regexes[self.lang],
                       lambda match: self.autocorrect_word(match.group(0)),
                       sentence.lower())
-
-    __call__ = autocorrect_sentence
+'''
