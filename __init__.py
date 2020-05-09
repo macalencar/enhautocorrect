@@ -47,7 +47,8 @@ def get_words(filename, lang):
     count_words=0
     with open(filename) as file:
         for line in file:
-            for word in re.findall(word_regex, line.lower()):
+            for ngram in re.findall(word_regex, line.lower()):
+                word=ngram[0]
                 if word.strip():
                     yield word
 
@@ -172,7 +173,9 @@ class Speller:
             report={"sentence":sentence,"issues":list()}
 
         #for word in re.findall(r'\w+', sentence.lower()):
-        for word in re.findall(word_regexes[self.lang], sentence.lower()):
+        for ngram in re.findall(word_regexes[self.lang], sentence.lower()):
+            word=ngram[0]
+            print(word)
             if not re.match(r'\d+', word):
                 candidates_list = self.candidates(word, max_suggestions, labels)
                 if candidates_list:
