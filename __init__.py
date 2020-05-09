@@ -175,7 +175,6 @@ class Speller:
         #for word in re.findall(r'\w+', sentence.lower()):
         for ngram in re.findall(word_regexes[self.lang], sentence.lower()):
             word=ngram[0]
-            print(word)
             if not re.match(r'\d+', word):
                 candidates_list = self.candidates(word, max_suggestions, labels)
                 if candidates_list:
