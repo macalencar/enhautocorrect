@@ -37,9 +37,7 @@ class Word(object):
         Generate slices to assist with typo
         definitions.
 
-        'the' => (('', 'the'), ('t', 'he'),
-                  ('th', 'e'), ('the', ''))
-
+        'the' => (('', 'the'), ('t', 'he'),('th', 'e'), ('the', ''))
         """
         slice_range = range(len(word) + 1)
         self.slices = tuple((word[:i], word[i:])
@@ -85,3 +83,4 @@ class Word(object):
         for e1 in self.typos():
             for e2 in Word(e1).typos():
                 yield e2
+        

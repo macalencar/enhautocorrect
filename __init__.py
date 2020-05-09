@@ -3,6 +3,10 @@
 # Copyright 2014 Jonas McCallum.
 # Updated for Python 3, based on Peter Norvig's
 # 2007 version: http://norvig.com/spell-correct.html
+#
+# python3 setup.py sdists
+# twine upload dist/<last package>
+#
 """
 Word based methods and functions
 
@@ -39,7 +43,7 @@ def load_from_tar(archive_name, file_name='word_count.json'):
 def get_words(filename, lang):
     """ Gets the words from input file  based on word_regexes
         associated to the language """
-    word_regex = word_regexes[lang]
+    word_regex = word_regexes[lang.lower()]
     count_words=0
     with open(filename) as file:
         for line in file:
@@ -60,17 +64,15 @@ def parse(words):
 def save_dictionary(freq_dict, dict_lang, out_filename='word_count.json'):
     with open(out_filename, 'w') as outfile:
         json.dump(freq_dict, outfile)
-    with tarfile.open(PATH+"/data/"+dict_lang+".tar.gz","w:gz") as compressed_file:
+    with tarfile.open(PATH+"/data/"+dict_lang.lower()+".tar.gz","w:gz") as compressed_file:
         compressed_file.add(out_filename)
     os.remove(out_filename)
 
-def count_words(src_filename, lang, update=True):
-    """ Analyze the input file based on the language and
-        create a compressed package for further usage """
-    words = get_words(src_filename, lang)
+def save_exceptions(src_filename, lang, update=True):
+    words = get_words(src_filename, lang.lower())
     counts = parse(words)    
     freq_dict=counts
-    dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang))        
+    dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang.lower()))        
     if update and os.path.exists(dict_file):
         old_dict = load_from_tar(dict_file)
         for k in counts.keys():
@@ -79,7 +81,24 @@ def count_words(src_filename, lang, update=True):
         counts={}
         freq_dict=old_dict
     print("Saving dictionary with", len(freq_dict), "words")      
-    save_dictionary(freq_dict, lang)
+    save_dictionary(freq_dict, lang.lower())
+
+def count_words(src_filename, lang, update=True):
+    """ Analyze the input file based on the language and
+        create a compressed package for further usage """
+    words = get_words(src_filename, lang.lower())
+    counts = parse(words)    
+    freq_dict=counts
+    dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang.lower()))        
+    if update and os.path.exists(dict_file):
+        old_dict = load_from_tar(dict_file)
+        for k in counts.keys():
+            try: old_dict[k]+=counts[k]
+            except KeyError: old_dict[k]=counts[k]
+        counts={}
+        freq_dict=old_dict
+    print("Saving dictionary with", len(freq_dict), "words")      
+    save_dictionary(freq_dict, lang.lower())
 
 class Speller:
     """ Main class that loads the dicitonary based on the language.
@@ -87,10 +106,13 @@ class Speller:
         the words with frequency value lower than threshold value """
 
     def __init__(self, lang='en', threshold=0):
+        if not os.path.exists(PATH+'/data/'+lang.lower()+'.tar.gz'):
+            print("Invalid language, please select one of these:", list(word_regexes.keys()))
+            exit(0)
+        self.dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang.lower()))
         self.threshold = threshold
-        self.dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang))
         self.nlp_data = load_from_tar(self.dict_file)
-        self.lang = lang
+        self.lang = lang.lower()
         if threshold > 0:
             self.prune_dictionary(threshold)
 

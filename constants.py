@@ -1,26 +1,25 @@
 # -*- coding: utf-8 -*-
+#This regex structure allow to identify words like:
+# word
+# word-word
+# word-word-word-...
+# word'word
+#
+#GENERIC REGEX: r"([<ALPHABETH>]+(('[<ALPHABETH>]+)|(-[<ALPHABETH>]+)*)*)"
+# 
+
 word_regexes = {
-    'en': r'[a-z]+',
-    'es': r'[a-záéíñóúü]+',
-    'fr': r'[a-zàâçéèêëîïôœùûüÿ]+',
-    'it': r'[a-zàéèìòù]+',
-    'jp': r'[a-z一-龯]+',
-    'pt_br': r"\w+-\w+-\w+|\w+-\w+|\w+'\w+|\w+", #r'[a-zãõçáéíóúâêôàü]+',
-    'ru': r'[a-zдёжзийклmмнптфхцчшщъыьэюя]+'
+    'en': r"([a-záéè]+(('[a-záéè]+)|(-[a-záéè]+)*)*)",
+    'pt-br': r"([a-zãõçáéíóúâêôàü]+(('[a-zãõçáéíóúâêôàü]+)|(-[a-zãõçáéíóúâêôàü]+)*)*)"
 }
 
 alphabets = {
-    'en': 'abcdefghijklmnopqrstuvwxyz',
-    'es': 'abcdefghijklmnopqrstuvwxyzáàãâéêèíóôõúñ]',
-    'fr': 'abcdefghijklmnopqrstuvwxyzàâçéèêëîïôœùûüÿ',
-    'it': 'abcdefghijklmnopqrstuvwxyzàéèìòù',
-    'jp': '一ァアあィイいゥウうヴェエえォオおカかガがキきギぎクくグぐケけゲげコこゴごサさザざシしジじスすズずセせゼぜソそゾぞタたダだチちヂぢツつヅづテてデでトとドどナなニにヌぬネねノのハはバばパぱヒひビびピぴフふブぶプぷヘへベべペぺホほボぼポぽマまミみムむメめモもャゃヤやュゅユゆョょヨよラらリりルるレれロろワわヷヰゐヸヱゑヹヲをヺンん',
-    'pt_br': 'abcdefghijklmnopqrstuvwxyzçáàãâéêèeíóôõúü',
-    'ru': 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя'
+    'en': 'abcdefghijklmnopqrstuvwxyzáéè',
+    'pt-br': 'abcdefghijklmnopqrstuvwxyzçáàãâéêèeíóôõú',
 }
 
 """ 
-### LETTER FOR SEVERAL ALPHABETS BASED ON THE SOURCE LANGUAGE ###
+### LETTER FROM SEVERAL ALPHABETS BASED ON THE SOURCE LANGUAGE ### (Source: Wikipedia)
 ABCDEFGHIJKLMNOPQRSTUVWXYZ (Latin alphabet)
     and no other – English, Indonesian, Latin, Malay, Swahili, Zulu
     àéëïĳ – Dutch (Except for the ligature ĳ, these letters are very rare in Dutch. Even fairly long Dutch texts often have no diacritics.)
