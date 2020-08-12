@@ -28,8 +28,10 @@ import json
 import re
 import tarfile
 import os
+import string
 from contextlib import closing
 from enhautocorrect.constants import word_regexes
+from enhautocorrect.constants import alphabets
 from enhautocorrect.typos import Word
 
 PATH = os.path.abspath(os.path.dirname(__file__))
@@ -45,10 +47,11 @@ def get_words(filename, lang):
         associated to the language """
     word_regex = word_regexes[lang.lower()]
     count_words=0
-    with open(filename) as file:
+    with open(filename, encoding="utf-8") as file:
         for line in file:
             for ngram in re.findall(word_regex, line.lower()):
-                word=ngram[0]
+                deny_alpha="[^"+alphabets[lang]+"]"
+                word=re.sub(f"{deny_alpha}+$","",re.sub(f"^{deny_alpha}+","",ngram[0]))
                 if word.strip():
                     yield word
 
@@ -142,7 +145,7 @@ class Speller:
         try: self.nlp_data[word]+=1
         except KeyError: self.nlp_data[word]=1
 
-    def candidates(self, word, max_suggestions=3, labels=False):
+    def candidates(self, word, max_suggestions=3, captalize=False, labels=False):
         """
         >>> Speller.candidates("gxt")
         [('get', 0.40018832391713743), ('got', 0.2532956685499058), ('gut', 0.01224105461393597)]
@@ -158,12 +161,17 @@ class Speller:
             return None
 
         if not labels:
+            if captalize:
+                return [x.capitalize() for x in words_lst[:max_suggestions]]
             return words_lst[:max_suggestions]
 
         words_prob = list()
         wp_total = sum (self.get_frequency(w) for w in words_lst) + 1 #, key=self.nlp_data.get))
         for candidate in words_lst:
-            words_prob.append({"term":candidate, "probability":self.get_frequency(candidate)/wp_total})
+            fixed_candidate=candidate
+            if captalize:
+                fixed_candidate=candidate.capitalize()
+            words_prob.append({"term":fixed_candidate, "probability":self.get_frequency(candidate)/wp_total})
         return words_prob[:max_suggestions]
 
     def analyze_sentence(self, sentence, max_suggestions=3, labels=False):
@@ -173,11 +181,20 @@ class Speller:
             report={"sentence":sentence,"issues":list()}
 
         #for word in re.findall(r'\w+', sentence.lower()):
-        for ngram in re.findall(word_regexes[self.lang], sentence.lower()):
-            word=ngram[0]
+        #for ngram in re.findall(word_regexes[self.lang], sentence.lower()):
+         
+        for ngram in sentence.split():
+            deny_alpha="[^"+alphabets[self.lang]+"]"
+            word=re.sub(f"{deny_alpha}+$","",re.sub(f"^{deny_alpha}+","",ngram.lower()))
             if not re.match(r'\d+', word):
-                candidates_list = self.candidates(word, max_suggestions, labels)
+                captal_letter=False
+                if ngram[0].isupper():
+                    captal_letter=True
+                #print(ngram)
+                candidates_list = self.candidates(word, max_suggestions, captal_letter, labels)
                 if candidates_list:
+                    if captal_letter:
+                        word = word.capitalize()
                     if labels:
                         report["issues"].append({"wrongTerm":word, "suggestions":candidates_list})
                     else:
