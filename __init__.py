@@ -139,29 +139,30 @@ class Speller:
 
     def remove_word(self, word):
         try: del self.nlp_data[word]                
-        except KeyError: print("Word'",word,"'not found")
+        except KeyError: print("Word",word,"not found")
     
     def add_word(self, word):
         try: self.nlp_data[word]+=1
         except KeyError: self.nlp_data[word]=1
 
-    def candidates(self, word, max_suggestions=3, captalize=False, labels=False):
+    def candidates(self, word, max_suggestions=100, capitalize=False, labels=False):
         """
         >>> Speller.candidates("gxt")
         [('get', 0.40018832391713743), ('got', 0.2532956685499058), ('gut', 0.01224105461393597)]
         >>>
         """
         word_obj = Word(word, self.lang)
-        words_lst = (   self.existing([word]) or
-                        self.existing(word_obj.typos()) or
-                        self.existing(word_obj.double_typos()) or
-                        [word])
+        words_lst = (self.existing([word]) or
+                    self.existing(word_obj.typos()) and
+                    self.existing(word_obj.double_typos()) or 
+                    [word])
+        #print(words_lst)
         words_lst=sorted(words_lst, key=self.nlp_data.get, reverse=True)
         if word in words_lst:
             return None
 
         if not labels:
-            if captalize:
+            if capitalize:
                 return [x.capitalize() for x in words_lst[:max_suggestions]]
             return words_lst[:max_suggestions]
 
@@ -169,7 +170,7 @@ class Speller:
         wp_total = sum (self.get_frequency(w) for w in words_lst) + 1 #, key=self.nlp_data.get))
         for candidate in words_lst:
             fixed_candidate=candidate
-            if captalize:
+            if capitalize:
                 fixed_candidate=candidate.capitalize()
             words_prob.append({"term":fixed_candidate, "probability":self.get_frequency(candidate)/wp_total})
         return words_prob[:max_suggestions]
