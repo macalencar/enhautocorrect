@@ -152,10 +152,10 @@ class Speller:
         >>>
         """
         word_obj = Word(word, self.lang)
-        words_lst = (self.existing([word]) or
-                     self.existing(word_obj.typos()) or
-                     self.existing(word_obj.double_typos()) or
-                     [word])
+        words_lst = (   self.existing([word]) or
+                        self.existing(word_obj.typos()) or
+                        self.existing(word_obj.double_typos()) or
+                        [word])
         words_lst=sorted(words_lst, key=self.nlp_data.get, reverse=True)
         if word in words_lst:
             return None

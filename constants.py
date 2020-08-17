@@ -14,8 +14,8 @@ word_regexes = {
 }
 
 alphabets = {
-    'en': 'abcdefghijklmnopqrstuvwxyzáéè',
-    'pt-br': 'abcdefghijklmnopqrstuvwxyzçáàãâéêèeíóôõú',
+    'en': 'abcdefghijklmnopqrstuvwxyzáéè\-\'',
+    'pt-br': 'abcdefghijklmnopqrstuvwxyzçáàãâéêèeíóôõú\-\'',
 }
 
 """ 
