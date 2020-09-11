@@ -187,7 +187,7 @@ class Speller:
         for ngram in sentence.split():
             deny_alpha="[^"+alphabets[self.lang]+"]"
             word=re.sub(f"{deny_alpha}+$","",re.sub(f"^{deny_alpha}+","",ngram.lower()))
-            if not re.match(r'\d+', word):
+            if word and not re.match(r'\d+', word):
                 captal_letter=False
                 if ngram[0].isupper():
                     captal_letter=True
