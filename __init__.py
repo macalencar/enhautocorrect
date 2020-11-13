@@ -138,12 +138,19 @@ class Speller:
         return 0
 
     def remove_word(self, word):
-        try: del self.nlp_data[word]                
-        except KeyError: print("Word",word,"not found")
+        try: 
+            del self.nlp_data[word]
+            return True              
+        except KeyError: 
+            return False
     
     def add_word(self, word):
-        try: self.nlp_data[word]+=1
-        except KeyError: self.nlp_data[word]=1
+        try: 
+            self.nlp_data[word]+=1
+            return True
+        except KeyError: 
+            self.nlp_data[word]=1
+            return False
 
     def candidates(self, word, max_suggestions=100, capitalize=False, labels=False):
         """
