@@ -25,6 +25,7 @@ https://github.com/macalencar/enhautocorrect/
 
 """
 import json
+from os import error
 import re
 import tarfile
 import os
@@ -111,8 +112,7 @@ class Speller:
 
     def __init__(self, lang='en', threshold=0):
         if not os.path.exists(PATH+'/data/'+lang.lower()+'.tar.gz'):
-            print("Invalid language, please select one of these:", list(word_regexes.keys()))
-            exit(0)
+            raise KeyError("Invalid dictionary language, please select one of these: "+str(list(word_regexes.keys())))
         self.dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang.lower()))
         self.threshold = threshold
         self.nlp_data = load_from_tar(self.dict_file)
