@@ -25,7 +25,6 @@ https://github.com/macalencar/enhautocorrect/
 
 """
 import json
-from os import error
 import re
 import tarfile
 import os
@@ -112,7 +111,8 @@ class Speller:
 
     def __init__(self, lang='en', threshold=0):
         if not os.path.exists(PATH+'/data/'+lang.lower()+'.tar.gz'):
-            raise KeyError("Invalid dictionary language, please select one of these: "+str(list(word_regexes.keys())))
+            raise KeyError("Invalid language, please select one of these: "+str(list(word_regexes.keys())))
+
         self.dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang.lower()))
         self.threshold = threshold
         self.nlp_data = load_from_tar(self.dict_file)
@@ -162,9 +162,11 @@ class Speller:
         words_lst = (self.existing([word]) or
                     self.existing(word_obj.typos()) and
                     self.existing(word_obj.double_typos()) or 
-                    [word])
+                    ["no suggestion found"])
         #print(words_lst)
         words_lst=sorted(words_lst, key=self.nlp_data.get, reverse=True)
+
+        #word in dictionary
         if word in words_lst:
             return None
 
@@ -174,7 +176,7 @@ class Speller:
             return words_lst[:max_suggestions]
 
         words_prob = list()
-        wp_total = sum (self.get_frequency(w) for w in words_lst) + 1 #, key=self.nlp_data.get))
+        wp_total = sum (self.get_frequency(w) for w in words_lst) + 1 
         for candidate in words_lst:
             fixed_candidate=candidate
             if capitalize:
@@ -187,9 +189,6 @@ class Speller:
         report={}
         if labels:
             report={"sentence":sentence,"issues":list()}
-
-        #for word in re.findall(r'\w+', sentence.lower()):
-        #for ngram in re.findall(word_regexes[self.lang], sentence.lower()):
          
         for ngram in sentence.split():
             deny_alpha="[^"+alphabets[self.lang]+"]"
@@ -198,7 +197,6 @@ class Speller:
                 captal_letter=False
                 if ngram[0].isupper():
                     captal_letter=True
-                #print(ngram)
                 candidates_list = self.candidates(word, max_suggestions, captal_letter, labels)
                 if candidates_list:
                     if captal_letter:
@@ -215,19 +213,3 @@ class Speller:
             return report or None
             
     __call__ = analyze_sentence
-
-'''    def autocorrect_word(self, word):
-        """most likely correction for everything up to a double typo"""
-        word_obj = Word(word, self.lang)
-        candidates = (self.existing([word]) or
-                      self.existing(word_obj.typos()) or
-                      self.existing(word_obj.double_typos()) or
-                      [word])
-        return max(candidates, key=self.nlp_data.get)
-
-    def autocorrect_sentence(self, sentence):
-        """return the correct sentence after each word pass throught autocorrect_word"""
-        return re.sub(word_regexes[self.lang],
-                      lambda match: self.autocorrect_word(match.group(0)),
-                      sentence.lower())
-'''
