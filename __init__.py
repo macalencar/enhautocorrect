@@ -55,6 +55,17 @@ def get_words(filename, lang):
                 if word.strip():
                     yield word
 
+def remove_elastic_words(freq_dict):
+    keys_to_remove=list()
+    rx=re.compile(r'(.)\1{2,}')
+    for k in freq_dict.keys():
+        rxx = rx.search(k)
+        if rxx:
+            keys_to_remove.append(k)
+    for rk in keys_to_remove:
+        try: del freq_dict[rk]
+        except Exception: pass
+
 def parse(words):
     """ Stores the words frequency """
     counts = dict()
@@ -74,8 +85,8 @@ def save_dictionary(freq_dict, dict_lang, out_filename='word_count.json'):
 
 def save_exceptions(src_filename, lang, update=True):
     words = get_words(src_filename, lang.lower())
-    counts = parse(words)    
-    freq_dict=counts
+    counts = parse(words)
+    freq_dict=remove_elastic_words(counts)
     dict_file = os.path.join(PATH, 'data/{}.tar.gz'.format(lang.lower()))        
     if update and os.path.exists(dict_file):
         old_dict = load_from_tar(dict_file)
@@ -144,12 +155,12 @@ class Speller:
         except KeyError: 
             return False
     
-    def add_word(self, word):
+    def add_word(self, word, init_val=1):
         try: 
-            self.nlp_data[word]+=1
+            self.nlp_data[word]+=init_val
             return True
         except KeyError: 
-            self.nlp_data[word]=1
+            self.nlp_data[word]=init_val
             return False
 
     def candidates(self, word, max_suggestions=100, capitalize=False, labels=False):
